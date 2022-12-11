@@ -1,4 +1,5 @@
 #include "cstack.h"
+#include <string.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,7 +36,7 @@ stack_array* array_initial()
 }
 hstack_t stack_new()
 {
-//выделение памяти под корень списка
+	//выделение памяти под корень списка
 	Node *root = (Node*)malloc(sizeof(Node));
 	if (!root)
 	{
@@ -61,7 +62,7 @@ hstack_t stack_new()
 
 void stack_free(const hstack_t hstack)
 {
-   if (hstack < 0 || hstack > arr->size)
+	if (hstack < 0 || hstack > arr->size)
 	{
 		printf("wrong data");
 	}
@@ -75,6 +76,7 @@ void stack_free(const hstack_t hstack)
 			{
 				Node * pre_top = top->next;
 				entries->entries = pre_top;
+				free(top->field);
 				free(top);
 				top = pre_top;
 			}
@@ -91,7 +93,7 @@ void stack_free(const hstack_t hstack)
 
 int stack_valid_handler(const hstack_t hstack)
 {
-   if (hstack < 0 || hstack > arr->size)
+	if (hstack < 0 || hstack > arr->size)
 	{
 		return 1;
 	}
@@ -99,7 +101,7 @@ int stack_valid_handler(const hstack_t hstack)
 	{
 		stack_array *entries = arr + hstack;
 		Node *top = entries->entries;
-		if (entries->size == 1)
+		if (entries->size != 0)
 		{
 			return 0;
 		}
@@ -112,9 +114,9 @@ int stack_valid_handler(const hstack_t hstack)
 
 unsigned int stack_size(const hstack_t hstack)
 {
-   if (hstack <0 || hstack > arr->size)
+	if (hstack <0 || hstack > arr->size)
 	{
-		printf("wrong data");
+		return 0u;
 	}
 	else
 	{
@@ -139,19 +141,20 @@ unsigned int stack_size(const hstack_t hstack)
 
 void stack_push(const hstack_t hstack, const void* data_in, const unsigned int size)
 {
-   if (hstack < 0 || data_in == NULL || size == NULL || hstack > arr->size)
+	if (hstack < 0 || data_in == NULL || size == NULL || hstack > arr->size)
 	{
-		printf("wrong data");
+		printf ("wrong data");
 	}
 	else
 	{
 		stack_array *entries = arr + hstack;
 		Node *top = entries->entries;
-		Node *new_node = (Node *)malloc(size);
+		Node *new_node = (Node *)malloc(sizeof(Node));
+		new_node->field = malloc(size);
 		if (new_node)
 		{
+			memcpy(new_node->field, data_in, size);
 			new_node->next = top;
-			memcpy(new_node->next, data_in, size);
 			entries->entries = new_node;
 		}
 	}
@@ -159,9 +162,9 @@ void stack_push(const hstack_t hstack, const void* data_in, const unsigned int s
 
 unsigned int stack_pop(const hstack_t hstack, void* data_out, const unsigned int size)
 {
-   if (hstack < 0 || size == NULL || hstack > arr->size)
+	if (hstack < 0 || size == NULL || hstack > arr->size || data_out == NULL)
 	{
-		printf("wrong data");
+		return 0u;
 	}
 	else
 	{
@@ -169,15 +172,23 @@ unsigned int stack_pop(const hstack_t hstack, void* data_out, const unsigned int
 		Node *top = entries->entries;
 		if (top->field != NULL)
 		{
-			data_out = top->field;
-			Node *pre_top = top->next;
-			entries->entries = pre_top;
-			free(top);
-			return sizeof(data_out);
+			if (size == sizeof(top->field))
+			{
+				data_out = top->field;
+				Node *pre_top = top->next;
+				entries->entries = pre_top;
+				free(top->field);
+				free(top);
+				return sizeof(data_out);
+			}
+			else
+			{
+				return 0u;
+			}
 		}
 		else
 		{
-			printf("stack empty");
+			return 0u;
 		}
 	}
 }
